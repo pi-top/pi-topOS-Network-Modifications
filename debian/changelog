@@ -1,0 +1,5 @@
+pi-top-os-network-modifications (1.0.0) bullseye; urgency=medium
+
+  * Initial release
+
+ -- pi-top <deb-maintainers@pi-top.com>  Sun, 29 Aug 2021 16:57:57 +0000

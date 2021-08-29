@@ -1,0 +1,16 @@
+Source: pi-top-os-network-modifications
+Section: utils
+Priority: optional
+Maintainer: pi-top <deb-maintainers@pi-top.com>
+Build-Depends:
+ debhelper-compat (= 12),
+Standards-Version: 4.5.1
+Homepage: https://pi-top.com/
+
+Package: pt-os-net-mods
+Architecture: all
+Depends:
+ ${misc:Depends},
+ udev,
+Description: pi-topOS top-level dummy package
+ The root package of pi-topOS modifications to Raspberry Pi OS.
