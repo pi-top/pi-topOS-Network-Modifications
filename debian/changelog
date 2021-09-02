@@ -1,4 +1,4 @@
-pi-top-os-network-modifications (1.0.1) bullseye; urgency=medium
+pi-top-os-network-modifications (1.0.1-1) bullseye; urgency=medium
 
   * Add Github workflows
   * Updated master workflow files
