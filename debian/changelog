@@ -1,3 +1,18 @@
+pi-top-os-network-modifications (1.0.1-3) bullseye; urgency=medium
+
+  * Updated master workflow files
+  * Add signing key and passphrase to deb_release workflow
+  * Add pull request template
+  * Update PR template to track Github issues
+  * Updated master workflow files
+  * Updated master workflow files
+  * Updated master workflow files
+  * Updated master workflow files
+  * Updated master workflow files
+  * Package for bookworm (#4)
+
+ -- pi-top <deb-maintainers@pi-top.com>  Fri, 12 Apr 2024 19:21:02 +0000
+
 pi-top-os-network-modifications (1.0.1-2) bullseye; urgency=medium
 
   * Updated master workflow files
