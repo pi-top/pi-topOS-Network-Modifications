@@ -1,4 +1,4 @@
-pi-top-os-network-modifications (1.0.2-1) bookworm; urgency=medium
+pi-top-os-network-modifications (1.1.0-1) bookworm; urgency=medium
 
   * Debian workflows: drop bullseye, move off the dead runner
   * Create releases with the workflow's own token
