@@ -1,0 +1,92 @@
+#!/bin/bash
+# Reconnects a Wi-Fi client interface that NetworkManager has given up on
+# while one of its saved networks is in range.
+
+set -u
+
+STATE_DIR="${PT_WIFI_WATCHDOG_STATE_DIR:-/run/pt-os-wifi-watchdog}"
+GRACE_SECONDS="${PT_WIFI_WATCHDOG_GRACE_SECONDS:-90}"
+
+uptime_seconds() {
+	local up _
+	read -r up _ </proc/uptime
+	echo "${up%.*}"
+}
+
+is_client_interface() {
+	iw dev "$1" info 2>/dev/null | grep -q "type managed"
+}
+
+visible_ssids() {
+	nmcli -t -f SSID device wifi list ifname "$1" --rescan auto 2>/dev/null | sort -u
+}
+
+# Saved client profiles usable on $1, highest priority then most recently used first
+candidate_profiles() {
+	local dev="$1" uuid type autoconnect priority timestamp
+	nmcli -t -f UUID,TYPE,AUTOCONNECT,AUTOCONNECT-PRIORITY,TIMESTAMP connection show |
+		while IFS=: read -r uuid type autoconnect priority timestamp; do
+			[ "$type" = "802-11-wireless" ] && [ "$autoconnect" = "yes" ] || continue
+			echo "$priority $timestamp $uuid"
+		done | sort -k1,1nr -k2,2nr | while read -r _ _ uuid; do
+			local mode ifname
+			mode="$(nmcli -g 802-11-wireless.mode connection show uuid "$uuid")"
+			ifname="$(nmcli -g connection.interface-name connection show uuid "$uuid")"
+			if [ -n "$mode" ] && [ "$mode" != "infrastructure" ]; then
+				continue
+			fi
+			if [ -n "$ifname" ] && [ "$ifname" != "$dev" ]; then
+				continue
+			fi
+			echo "$uuid"
+		done
+}
+
+check_device() {
+	local dev="$1" state="$2"
+	local marker="${STATE_DIR}/${dev}"
+
+	if [ "$state" != "disconnected" ] || ! is_client_interface "$dev" ||
+		[ "$(nmcli -g GENERAL.AUTOCONNECT device show "$dev")" != "yes" ]; then
+		rm -f "$marker"
+		return
+	fi
+
+	local now since
+	now="$(uptime_seconds)"
+	if [ ! -f "$marker" ]; then
+		echo "$now" >"$marker"
+		return
+	fi
+	since="$(cat "$marker")"
+	[ $((now - since)) -ge "$GRACE_SECONDS" ] || return
+
+	local visible uuid ssid
+	visible="$(visible_ssids "$dev")"
+	for uuid in $(candidate_profiles "$dev"); do
+		ssid="$(nmcli -g 802-11-wireless.ssid connection show uuid "$uuid")"
+		if [ -n "$ssid" ] && grep -qxF -- "$ssid" <<<"$visible"; then
+			echo "${dev} disconnected for $((now - since)) s with '${ssid}' in range; reconnecting"
+			rm -f "$marker"
+			if nmcli --wait 45 connection up uuid "$uuid" ifname "$dev"; then
+				echo "${dev} reconnected to '${ssid}'"
+			else
+				echo "${dev} could not reconnect to '${ssid}'; will retry"
+			fi
+			return
+		fi
+	done
+}
+
+main() {
+	[ "$(nmcli -t radio wifi 2>/dev/null)" = "enabled" ] || exit 0
+	mkdir -p "$STATE_DIR"
+
+	local dev type state
+	nmcli -t -f DEVICE,TYPE,STATE device | while IFS=: read -r dev type state; do
+		[ "$type" = "wifi" ] || continue
+		check_device "$dev" "$state"
+	done
+}
+
+main "$@"
