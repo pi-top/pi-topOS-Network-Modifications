@@ -1,0 +1,9 @@
+[Unit]
+Description=Reconnect Wi-Fi after NetworkManager gives up on a network in range
+After=NetworkManager.service
+Requisite=NetworkManager.service
+ConditionPathExists=/usr/bin/nmcli
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/pt-os-net-mods/wifi-watchdog

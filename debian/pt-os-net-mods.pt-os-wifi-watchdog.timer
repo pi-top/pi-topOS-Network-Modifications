@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Wi-Fi every minute and reconnect if needed
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target
