@@ -1,4 +1,4 @@
-pi-top-os-network-modifications (1.1.1-1) bookworm; urgency=medium
+pi-top-os-network-modifications (1.2.0-1) bookworm; urgency=medium
 
   * Reconnect Wi-Fi when NetworkManager gives up on a network in range (#10)
 
